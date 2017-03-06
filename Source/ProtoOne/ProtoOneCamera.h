@@ -13,7 +13,6 @@ class PROTOONE_API AProtoOneCamera : public ACameraActor
 {
 	GENERATED_BODY()
 
-
 	/** Arm connecting the character to the Usphere*/
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class USpringArmComponent* PlayerBoom;
@@ -34,8 +33,8 @@ public:
 
 	AProtoOneCamera();
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera)
-	ACharacter* CameraTarget;
+	UFUNCTION(BlueprintCallable, Category = Camera)
+		void SetNewTarget(ACharacter* NewTarget);
 	
 	/** Returns PlayerBoom object*/
 	FORCEINLINE USpringArmComponent* GetPlayerBoom() const { return PlayerBoom; };
@@ -51,6 +50,9 @@ public:
 
 
 protected:
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera)
+		ACharacter* CameraTarget;
 
 	/** The size of the sphere around the character */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Camera)
@@ -69,6 +71,7 @@ protected:
 		float CameraBoomDistance;
 
 private:
+
 
 
 };

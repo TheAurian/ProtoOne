@@ -15,6 +15,10 @@ class AProtoOneCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class AProtoOneCamera* MainCamera;
+
 public:
 	AProtoOneCharacter();
 
@@ -27,6 +31,8 @@ public:
 	float BaseLookUpRate;
 
 protected:
+
+
 
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();

@@ -3,6 +3,7 @@
 #include "ProtoOne.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "ProtoOneCharacter.h"
+#include "ProtoOneCamera.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProtoOneCharacter
@@ -37,6 +38,18 @@ AProtoOneCharacter::AProtoOneCharacter()
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+
+	//WIP camera setup
+	MainCamera = CreateDefaultSubobject<AProtoOneCamera>(TEXT("MainCamera"));
+	if (MainCamera != nullptr) {
+		MainCamera->SetNewTarget(this);
+		UE_LOG(LogTemp, Warning, TEXT("Main camera created successfully."));
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Unable to create MainCamera. It's pointer is null."));
+	}
+
+
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
