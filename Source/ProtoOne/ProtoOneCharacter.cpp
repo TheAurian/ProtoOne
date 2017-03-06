@@ -3,7 +3,7 @@
 #include "ProtoOne.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
 #include "ProtoOneCharacter.h"
-#include "ProtoOneCamera.h"
+#include "ProtoOneCameraComponent.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AProtoOneCharacter
@@ -28,7 +28,7 @@ AProtoOneCharacter::AProtoOneCharacter()
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	// Create a camera boom (pulls in towards the player if there is a collision)
+	/* Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
 	CameraBoom->SetupAttachment(RootComponent);
 	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
@@ -37,10 +37,10 @@ AProtoOneCharacter::AProtoOneCharacter()
 	// Create a follow camera
 	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
+	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
 
 	//WIP camera setup
-	MainCamera = CreateDefaultSubobject<AProtoOneCamera>(TEXT("MainCamera"));
+	MainCamera = CreateDefaultSubobject<UProtoOneCameraComponent>(TEXT("MainCamera"));
 	if (MainCamera != nullptr) {
 		MainCamera->SetNewTarget(this);
 		UE_LOG(LogTemp, Warning, TEXT("Main camera created successfully."));

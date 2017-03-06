@@ -12,7 +12,6 @@ AProtoOneCamera::AProtoOneCamera() {
 	SphereSize = 300.0f;
 
 	CameraSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CameraSphere"));
-	CameraSphere->SetSphereRadius(SphereSize);
 
 	/*
 	// Create a camera boom (pulls in towards the player if there is a collision)
@@ -31,6 +30,7 @@ void AProtoOneCamera::SetNewTarget(ACharacter* NewTarget) {
 	CameraTarget = NewTarget;
 	//CameraSphere->SetupAttachment(CameraTarget->GetRootComponent());
 	CameraSphere->AttachTo(CameraTarget->GetRootComponent());
+	CameraSphere->SetSphereRadius(SphereSize);
 	CameraSphere->SetVisibility(true, true);
 }
 

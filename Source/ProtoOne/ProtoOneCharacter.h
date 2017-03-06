@@ -17,7 +17,7 @@ class AProtoOneCharacter : public ACharacter
 	class UCameraComponent* FollowCamera;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-		class AProtoOneCamera* MainCamera;
+		class UProtoOneCameraComponent* MainCamera;
 
 public:
 	AProtoOneCharacter();
