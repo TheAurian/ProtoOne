@@ -11,29 +11,21 @@ UProtoOneCameraComponent::UProtoOneCameraComponent()
 	// off to improve performance if you don't need them.
 	PrimaryComponentTick.bCanEverTick = true;
 
-	//set a default size for the sphere
-	SphereSize = 300.0f;
+
 
 	CameraSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CameraSphere"));
 	// ...
 
 	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-
+	PlayerBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("PlayerBoom"));
 	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
 
+	//set a default size for the sphere
+	SphereSize = 300.0f;
 
-	/*
-	// Create a camera boom (pulls in towards the player if there is a collision)
-	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character
-	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
-
-	// Create a follow camera
-	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
-	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	PlayerCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
+	CameraBoomDistance = 600.0f;
+	PlayerBoomDistance = 200.0f;
 }
 
 
@@ -58,16 +50,22 @@ void UProtoOneCameraComponent::TickComponent( float DeltaTime, ELevelTick TickTy
 void UProtoOneCameraComponent::SetNewTarget(ACharacter* NewTarget) {
 	CameraTarget = NewTarget;
 	//CameraSphere->SetupAttachment(CameraTarget->GetRootComponent());
-	CameraSphere->AttachTo(CameraTarget->GetRootComponent());
+
+	//connect the
+	CameraSphere->AttachTo(PlayerBoom);
 	CameraSphere->SetSphereRadius(SphereSize);
 	CameraSphere->SetVisibility(true, true);
+	CameraSphere->SetHiddenInGame(false);
 
-	CameraBoom->SetupAttachment(CameraTarget->GetRootComponent());
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character
+	PlayerBoom->SetupAttachment(CameraTarget->GetRootComponent());
+	PlayerBoom->TargetArmLength = PlayerBoomDistance;
+	PlayerBoom->bUsePawnControlRotation = false;
+
+	CameraBoom->SetupAttachment(CameraSphere);
+	CameraBoom->TargetArmLength = CameraBoomDistance; // The camera follows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = false; // Rotate the arm based on the controller
 
-
 	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	PlayerCamera->bUsePawnControlRotation = true; // Camera does not rotate relative to arm */
+	PlayerCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
 }
 
