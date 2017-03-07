@@ -33,6 +33,8 @@ public:
 
 	AProtoOneCamera();
 
+	virtual void BeginPlay() override;
+
 	UFUNCTION(BlueprintCallable, Category = Camera)
 		void SetNewTarget(ACharacter* NewTarget);
 	

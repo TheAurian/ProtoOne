@@ -28,26 +28,40 @@ AProtoOneCharacter::AProtoOneCharacter()
 	GetCharacterMovement()->JumpZVelocity = 600.f;
 	GetCharacterMovement()->AirControl = 0.2f;
 
-	/* Create a camera boom (pulls in towards the player if there is a collision)
+	////
+	//// CAMERA SETUP
+	////
+
+	CameraSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CameraSphere"));
+	// ...
+
+	// Create a camera boom (pulls in towards the player if there is a collision)
 	CameraBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("CameraBoom"));
-	CameraBoom->SetupAttachment(RootComponent);
-	CameraBoom->TargetArmLength = 300.0f; // The camera follows at this distance behind the character	
+	PlayerBoom = CreateDefaultSubobject<USpringArmComponent>(TEXT("PlayerBoom"));
+	PlayerCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("PlayerCamera"));
+
+	//set a default size for the sphere
+	SphereSize = 1000.0f;
+	CameraBoomDistance = 600.0f;
+	PlayerBoomDistance = 200.0f;
+	RecenterDelay = 1.0f;
+
+	//connect the
+	CameraSphere->AttachTo(RootComponent);
+	CameraSphere->SetSphereRadius(SphereSize);
+	//CameraSphere->SetVisibility(true, true);
+	CameraSphere->SetHiddenInGame(false);
+
+	PlayerBoom->SetupAttachment(CameraSphere);
+	PlayerBoom->TargetArmLength = PlayerBoomDistance;
+	PlayerBoom->bUsePawnControlRotation = false;
+
+	CameraBoom->SetupAttachment(CameraSphere);
+	CameraBoom->TargetArmLength = CameraBoomDistance; // The camera follows at this distance behind the character
 	CameraBoom->bUsePawnControlRotation = true; // Rotate the arm based on the controller
 
-	// Create a follow camera
-	FollowCamera = CreateDefaultSubobject<UCameraComponent>(TEXT("FollowCamera"));
-	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
-	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
-
-	//WIP camera setup
-	MainCamera = CreateDefaultSubobject<UProtoOneCameraComponent>(TEXT("MainCamera"));
-	if (MainCamera != nullptr) {
-		MainCamera->SetNewTarget(this);
-		UE_LOG(LogTemp, Warning, TEXT("Main camera created successfully."));
-	}
-	else {
-		UE_LOG(LogTemp, Warning, TEXT("Unable to create MainCamera. It's pointer is null."));
-	}
+	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
+	PlayerCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
 
 
 

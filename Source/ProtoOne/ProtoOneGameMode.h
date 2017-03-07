@@ -10,6 +10,11 @@ class AProtoOneGameMode : public AGameModeBase
 
 public:
 	AProtoOneGameMode();
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
+		class AProtoOneCamera* MainCamera;
+
+	virtual void BeginPlay() override;
 };
 
 
