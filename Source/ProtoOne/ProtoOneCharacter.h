@@ -87,6 +87,9 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = Camera)
 		float CameraBoomDistance;
 
+	/** Camera lag*/
+	float CameraLag = 1.f;
+
 public:
 	/** Returns PlayerBoom object*/
 	FORCEINLINE USpringArmComponent* GetPlayerBoom() const { return PlayerBoom; };
