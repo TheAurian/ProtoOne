@@ -90,6 +90,24 @@ protected:
 	/** Camera lag*/
 	float CameraLag = 1.f;
 
+	/** Duration after being damaged and cannot move */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	float HitStunDelay = 0.5f;
+
+	/** Duration after attacking and cannot move */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	float AttackRecoveryDelay = 0.5f;
+
+	/** Debug Attack/Spear Trace Length */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+	float DebugAttackLineLength = 80.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float SweepLineOffset = 50.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float DebugAttackAngle = 35.f;
+
 public:
 	/** Returns PlayerBoom object*/
 	FORCEINLINE USpringArmComponent* GetPlayerBoom() const { return PlayerBoom; };
@@ -102,5 +120,25 @@ public:
 
 	/** Returns CameraSphere object*/
 	FORCEINLINE USphereComponent* GetCameraSphere() const { return CameraSphere; };
+
+	/*
+		SECTION FOR PLAYER CONTROL FUNCTIONS
+	*/
+
+	/** This function initiates action events or evades (depending on game context)*/
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+		void AttackLeft();
+	/** This function initiates action events or evades (depending on game context)*/
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+		void AttackRight();
+
+	/** This function initiates action events or evades (depending on game context)*/
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+		void AttackStab();
+
+	/** This function initiates action events or evades (depending on game context)*/
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+		void Action();
+
 };
 

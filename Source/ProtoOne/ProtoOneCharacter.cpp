@@ -61,7 +61,6 @@ AProtoOneCharacter::AProtoOneCharacter()
 
 	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	PlayerCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
-	PlayerCamera->Set
 
 
 
@@ -89,6 +88,12 @@ void AProtoOneCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAxis("TurnRate", this, &AProtoOneCharacter::TurnAtRate);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 	PlayerInputComponent->BindAxis("LookUpRate", this, &AProtoOneCharacter::LookUpAtRate);
+
+	//handle player attacking bindings
+	PlayerInputComponent->BindAction("Action", IE_Pressed, this, &AProtoOneCharacter::Action);
+	PlayerInputComponent->BindAction("Sweep Left", IE_Pressed, this, &AProtoOneCharacter::AttackLeft);
+	PlayerInputComponent->BindAction("Sweep Right", IE_Pressed, this, &AProtoOneCharacter::AttackRight);
+	PlayerInputComponent->BindAction("Stab", IE_Pressed, this, &AProtoOneCharacter::AttackStab);
 
 	// handle touch devices
 	PlayerInputComponent->BindTouch(IE_Pressed, this, &AProtoOneCharacter::TouchStarted);
@@ -153,4 +158,84 @@ void AProtoOneCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AProtoOneCharacter::AttackRight() {
+	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP RIGHT BUTTON PRESSED"));
+
+	//move line trace off to the right of our PC
+	FRotator offset = GetActorRotation().Add(0.f, 90.f, 0.f);
+	FVector LineTraceStart = GetActorLocation() + offset.Vector() * SweepLineOffset;
+
+	// end the trace in a diagonal line 45 degrees left
+	//FRotator SweepEnd = offset + FRotator(0.f, -45.f, 0.f);
+	FRotator SweepEnd = GetActorRotation() + FRotator(0.f, -DebugAttackAngle, 0.f);
+	FVector LineTraceEnd = LineTraceStart + SweepEnd.Vector() * DebugAttackLineLength;
+
+	for (int i = 0; i < 60; i++) {
+		//draw trace line
+		DrawDebugLine(
+			GetWorld(),
+			LineTraceStart,
+			LineTraceEnd,
+			FColor(255, 0, 0),
+			false,
+			0.f,
+			0,
+			10.f
+		);
+	}
+
+
+}
+
+void AProtoOneCharacter::AttackLeft() {
+	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP LEFT BUTTON PRESSED"));
+
+	//move line trace off to the left of our PC
+	FRotator offset = GetActorRotation().Add(0.f, -90.f, 0.f);
+	FVector LineTraceStart = GetActorLocation() + offset.Vector() * SweepLineOffset;
+
+	// end the trace in a diagonal line 45 degrees right
+	FRotator SweepEnd = GetActorRotation() + FRotator(0.f, DebugAttackAngle, 0.f);
+	FVector LineTraceEnd = LineTraceStart + SweepEnd.Vector() * DebugAttackLineLength;
+
+	for (int i = 0; i < 60; i++) {
+		DrawDebugLine(
+			GetWorld(),
+			LineTraceStart,
+			LineTraceEnd,
+			FColor(255, 0, 0),
+			false,
+			0.f,
+			0,
+			10.f
+		);
+	}
+
+
+}
+
+void AProtoOneCharacter::AttackStab() {
+	UE_LOG(LogTemp, Warning, TEXT("ATTACK/STAB BUTTON PRESSED"));
+	
+	FVector LineTraceEnd = GetActorLocation() + GetActorRotation().Vector() * DebugAttackLineLength;
+
+	for (int i = 0; i < 60; i++) {
+		DrawDebugLine(
+			GetWorld(),
+			GetActorLocation(),
+			LineTraceEnd,
+			FColor(255, 0, 0),
+			false,
+			0.f,
+			0,
+			10.f
+		);
+	}
+
+}
+
+void AProtoOneCharacter::Action() {
+	UE_LOG(LogTemp, Warning, TEXT("ACTION BUTTON PRESSED"));
 }
