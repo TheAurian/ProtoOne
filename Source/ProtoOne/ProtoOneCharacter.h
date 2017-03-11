@@ -123,6 +123,7 @@ public:
 
 	/*
 		SECTION FOR PLAYER CONTROL FUNCTIONS
+		- each attack function should include an audio que, an animation reference and a visual effect
 	*/
 
 	/** This function initiates action events or evades (depending on game context)*/
