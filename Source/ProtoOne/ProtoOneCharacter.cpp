@@ -5,6 +5,9 @@
 #include "ProtoOneCharacter.h"
 #include "ProtoOneCameraComponent.h"
 
+#define OUT
+
+
 //////////////////////////////////////////////////////////////////////////
 // AProtoOneCharacter
 
@@ -160,57 +163,58 @@ void AProtoOneCharacter::MoveRight(float Value)
 	}
 }
 
+////////////////////////////////////////////////////////////////////////////////
+// ADDED STUFF
+
 void AProtoOneCharacter::AttackRight() {
 	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP RIGHT BUTTON PRESSED"));
 
-	//move line trace off to the right of our PC
-	FRotator offset = GetActorRotation().Add(0.f, 90.f, 0.f);
-	FVector LineTraceStart = GetActorLocation() + offset.Vector() * SweepLineOffset;
+	auto HitResult = GetSinglePhysicsBodyInRange(GetSweepRayTraceStart(EAttack::AT_RIGHT), GetSweepRayTraceEnd(EAttack::AT_RIGHT));
+	auto HitActor = HitResult.GetActor();
+	if (HitActor) {
+		UE_LOG(LogTemp, Warning, TEXT("Right Sweep Damaged  Target: %s"), *HitActor->GetName());
 
-	// end the trace in a diagonal line 45 degrees left
-	//FRotator SweepEnd = offset + FRotator(0.f, -45.f, 0.f);
-	FRotator SweepEnd = GetActorRotation() + FRotator(0.f, -DebugAttackAngle, 0.f);
-	FVector LineTraceEnd = LineTraceStart + SweepEnd.Vector() * DebugAttackLineLength;
-
-	for (int i = 0; i < 60; i++) {
-		//draw trace line
-		DrawDebugLine(
-			GetWorld(),
-			LineTraceStart,
-			LineTraceEnd,
-			FColor(255, 0, 0),
-			false,
-			0.f,
-			0,
-			10.f
-		);
+		///call actors TakeDamage function, and apply damage based on attack damage
 	}
 
 
 }
 
+FVector AProtoOneCharacter::GetSweepRayTraceStart(EAttack SweepType) {
+
+	// determine direction and rotation sweep traces in
+	float direction = 1;
+	if (SweepType == EAttack::AT_LEFT) {
+		direction *= -1;
+	}
+
+	//move line trace off to the left of our PC
+	FRotator offset = GetActorRotation().Add(0.f, 90.f*direction, 0.f);
+	return GetActorLocation() + offset.Vector() * SweepLineOffset;
+}
+
+FVector AProtoOneCharacter::GetSweepRayTraceEnd(EAttack SweepType) {
+
+	// determine direction and rotation sweep traces in
+	float direction = 1;
+	if (SweepType == EAttack::AT_LEFT) {
+		direction *= -1;
+	}
+
+	// end the trace in a diagonal line 45 degrees right
+	FRotator SweepEnd = GetActorRotation() + FRotator(0.f, DebugAttackAngle*direction, 0.f);
+	return GetSweepRayTraceStart(SweepType) + SweepEnd.Vector() * DebugAttackLineLength;
+}
+
 void AProtoOneCharacter::AttackLeft() {
 	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP LEFT BUTTON PRESSED"));
 
-	//move line trace off to the left of our PC
-	FRotator offset = GetActorRotation().Add(0.f, -90.f, 0.f);
-	FVector LineTraceStart = GetActorLocation() + offset.Vector() * SweepLineOffset;
+	auto HitResult = GetSinglePhysicsBodyInRange(GetSweepRayTraceStart(EAttack::AT_LEFT), GetSweepRayTraceEnd(EAttack::AT_LEFT));
+	auto HitActor = HitResult.GetActor();
+	if (HitActor) {
+		UE_LOG(LogTemp, Warning, TEXT("Left Sweep Damaged Target: %s"), *HitActor->GetName());
 
-	// end the trace in a diagonal line 45 degrees right
-	FRotator SweepEnd = GetActorRotation() + FRotator(0.f, DebugAttackAngle, 0.f);
-	FVector LineTraceEnd = LineTraceStart + SweepEnd.Vector() * DebugAttackLineLength;
-
-	for (int i = 0; i < 60; i++) {
-		DrawDebugLine(
-			GetWorld(),
-			LineTraceStart,
-			LineTraceEnd,
-			FColor(255, 0, 0),
-			false,
-			0.f,
-			0,
-			10.f
-		);
+		///call actors TakeDamage function
 	}
 
 
@@ -221,10 +225,38 @@ void AProtoOneCharacter::AttackStab() {
 	
 	FVector LineTraceEnd = GetActorLocation() + GetActorRotation().Vector() * DebugAttackLineLength;
 
+	auto HitResult = GetSinglePhysicsBodyInRange(GetActorLocation(), LineTraceEnd);
+	auto HitActor = HitResult.GetActor();
+	if (HitActor) {
+		UE_LOG(LogTemp, Warning, TEXT("Stab Damaged Target: %s"), *HitActor->GetName());
+
+		///call actors TakeDamage function
+	}
+}
+
+void AProtoOneCharacter::Action() {
+	UE_LOG(LogTemp, Warning, TEXT("ACTION BUTTON PRESSED"));
+}
+
+const FHitResult AProtoOneCharacter::GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd) {
+
+	/// setup query parameters (always ignore yourself byt getting owner or the first hit we get will be ourself)
+	FCollisionQueryParams TraceParams(FName(TEXT("")), false, UGameplayStatics::GetPlayerCharacter(this, 0));
+
+	///
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT HitResult, 
+		LineTraceStart,
+		LineTraceEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_PhysicsBody),
+		TraceParams
+	);
+
 	for (int i = 0; i < 60; i++) {
 		DrawDebugLine(
 			GetWorld(),
-			GetActorLocation(),
+			LineTraceStart,
 			LineTraceEnd,
 			FColor(255, 0, 0),
 			false,
@@ -233,9 +265,5 @@ void AProtoOneCharacter::AttackStab() {
 			10.f
 		);
 	}
-
-}
-
-void AProtoOneCharacter::Action() {
-	UE_LOG(LogTemp, Warning, TEXT("ACTION BUTTON PRESSED"));
+	return HitResult;
 }

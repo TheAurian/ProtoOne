@@ -3,6 +3,16 @@
 #include "GameFramework/Character.h"
 #include "ProtoOneCharacter.generated.h"
 
+// Enum to define different attacks
+UENUM(BlueprintType)
+enum class EAttack
+{
+	AT_LEFT			UMETA(DisplayName="Left Sweep"),
+	AT_RIGHT		UMETA(DisplayName = "Right Sweep"),
+	AT_STAB			UMETA(DisplayName = "Stab")
+
+};
+
 UCLASS(config=Game)
 class AProtoOneCharacter : public ACharacter
 {
@@ -102,11 +112,22 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float DebugAttackLineLength = 80.f;
 
+	/** How far from PC's center does sweep attack start */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		float SweepLineOffset = 50.f;
 
+	/** Sweep attack angle */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		float DebugAttackAngle = 35.f;
+
+	/** Damage value for stab attaks */ 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float Damage_Stab = 30.f;
+
+	/** Damage value for sweep attaks */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float Damage_Sweep = 45.f;
+
 
 public:
 	/** Returns PlayerBoom object*/
@@ -140,6 +161,15 @@ public:
 	/** This function initiates action events or evades (depending on game context)*/
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void Action();
+
+private:
+
+	FVector GetSweepRayTraceStart(EAttack SweepType);
+
+	FVector GetSweepRayTraceEnd(EAttack SweepType);
+
+	/** */
+	const FHitResult GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd);
 
 };
 
