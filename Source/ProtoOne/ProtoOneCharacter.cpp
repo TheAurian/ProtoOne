@@ -51,7 +51,6 @@ AProtoOneCharacter::AProtoOneCharacter()
 	//connect the
 	CameraSphere->AttachTo(RootComponent);
 	CameraSphere->SetSphereRadius(SphereSize);
-	//CameraSphere->SetVisibility(true, true);
 	CameraSphere->SetHiddenInGame(false);
 
 	PlayerBoom->SetupAttachment(CameraSphere);
@@ -65,7 +64,9 @@ AProtoOneCharacter::AProtoOneCharacter()
 	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	PlayerCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
 
-
+	//Set player stats
+	HealthTotal = 100.f;
+	UE_LOG(LogTemp, Warning, TEXT("Player Character's current health is: %s"), *FString::SanitizeFloat(HealthTotal));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -164,7 +165,7 @@ void AProtoOneCharacter::MoveRight(float Value)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// ADDED STUFF
+// ATTACKING 
 
 void AProtoOneCharacter::AttackRight() {
 	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP RIGHT BUTTON PRESSED"));
@@ -266,4 +267,50 @@ const FHitResult AProtoOneCharacter::GetSinglePhysicsBodyInRange(FVector LineTra
 		);
 	}
 	return HitResult;
+}
+
+/////////////////////////////////////////////////
+//// Player Stats Management Functions
+
+void AProtoOneCharacter::AddHealth(float HealthToAdd) {
+
+}
+
+bool AProtoOneCharacter::IsPlayerDead() {
+	return HealthTotal <= 0;
+}
+
+void AProtoOneCharacter::KillPlayer() {
+	UE_LOG(LogTemp, Warning, TEXT("Player has lost ALL health and is now dead!: %s HP"), *FString::SanitizeFloat(HealthTotal));
+	// sound/visual effect
+	//PlayerController->SetCinematicMode(); to disable input
+	// run game over UI
+	// initiate game restart
+	// may need to call Destroy() and GetWorld()->ForceGarbageCollection(true)
+}
+
+float AProtoOneCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
+	const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
+
+	// if player is not dead
+	if (!IsPlayerDead()) {
+		// damage player
+		HealthTotal -= ActualDamage;
+		HealthPercentage = HealthTotal / 100.f;
+		UE_LOG(LogTemp, Warning, TEXT("Player Took this much damage: %s HP"), *FString::SanitizeFloat(ActualDamage));
+	}
+
+	UE_LOG(LogTemp, Warning, TEXT("Player's remaining health: %s HP"), *FString::SanitizeFloat(HealthTotal));
+
+	// if player is now dead
+	if (IsPlayerDead()) {
+		// kill player
+		KillPlayer();
+	}
+
+	return ActualDamage;
+}
+
+void AProtoOneCharacter::InflictDamage() {
+
 }

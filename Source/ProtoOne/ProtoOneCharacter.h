@@ -37,6 +37,13 @@ class AProtoOneCharacter : public ACharacter
 public:
 	AProtoOneCharacter();
 
+	float TakeDamage(
+		float DamageAmount,
+		struct FDamageEvent const& DamageEvent,
+		class AController* EventInstigator,
+		AActor* DamageCauser
+	) override;
+
 	/** Base turn rate, in deg/sec. Other scaling may affect final turn rate. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category=Camera)
 	float BaseTurnRate;
@@ -46,8 +53,6 @@ public:
 	float BaseLookUpRate;
 
 protected:
-
-
 
 	/** Resets HMD orientation in VR. */
 	void OnResetVR();
@@ -170,6 +175,25 @@ private:
 
 	/** */
 	const FHitResult GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd);
+
+	//////////////////////////////////////////////////////////////////
+	// DAMAGE CONTROL SECTIONS
+
+public:
+	void AddHealth(float HealthToAdd);
+	bool IsPlayerDead();
+	void KillPlayer();
+	void InflictDamage();
+
+private:
+	float HealthTotal;
+	float HealthPercentage = 100.f;
+	float HealthMultiplier = 1.f;
+
+
+
+
+
 
 };
 
