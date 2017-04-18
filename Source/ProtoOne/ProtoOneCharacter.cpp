@@ -2,6 +2,7 @@
 
 #include "ProtoOne.h"
 #include "Kismet/HeadMountedDisplayFunctionLibrary.h"
+#include "Kismet/KismetMathLibrary.h"
 #include "ProtoOneCharacter.h"
 #include "ProtoOneCameraComponent.h"
 
@@ -66,6 +67,10 @@ AProtoOneCharacter::AProtoOneCharacter()
 
 	//Set player stats
 	HealthTotal = 100.f;
+
+	/// wait after player spawns before they can take damage
+	StartHitDelayTimer();
+
 	UE_LOG(LogTemp, Warning, TEXT("Player Character's current health is: %s"), *FString::SanitizeFloat(HealthTotal));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
@@ -289,15 +294,31 @@ void AProtoOneCharacter::KillPlayer() {
 	// may need to call Destroy() and GetWorld()->ForceGarbageCollection(true)
 }
 
+void AProtoOneCharacter::PlayerHittable() {
+	CanBeHit = true;
+}
+
+void AProtoOneCharacter::StartHitDelayTimer() {
+	if (GetWorld()) {
+		GetWorldTimerManager().SetTimer(HittablePlayerTimer, this, &AProtoOneCharacter::PlayerHittable, HitRecoveryDelay, false);
+	}
+}
+
 float AProtoOneCharacter::TakeDamage(float DamageAmount, struct FDamageEvent const& DamageEvent, class AController* EventInstigator, class AActor* DamageCauser) {
 	const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	// if player is not dead
-	if (!IsPlayerDead()) {
+	if (!IsPlayerDead() & CanBeHit) {
 		// damage player
 		HealthTotal -= ActualDamage;
 		HealthPercentage = HealthTotal / 100.f;
 		UE_LOG(LogTemp, Warning, TEXT("Player Took this much damage: %s HP"), *FString::SanitizeFloat(ActualDamage));
+		CanBeHit = false;
+		StartHitDelayTimer();
+	}
+	else {
+		//player can't be damaged at this time, so leave
+		return 0.f;
 	}
 
 	UE_LOG(LogTemp, Warning, TEXT("Player's remaining health: %s HP"), *FString::SanitizeFloat(HealthTotal));
@@ -308,6 +329,7 @@ float AProtoOneCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 		KillPlayer();
 	}
 
+	
 	return ActualDamage;
 }
 

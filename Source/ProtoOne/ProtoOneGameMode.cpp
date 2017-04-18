@@ -4,6 +4,7 @@
 #include "ProtoOneGameMode.h"
 #include "ProtoOneCharacter.h"
 #include "ProtoOneCamera.h"
+#include "Blueprint/UserWidget.h"
 
 
 AProtoOneGameMode::AProtoOneGameMode()
@@ -16,10 +17,28 @@ AProtoOneGameMode::AProtoOneGameMode()
 
 
 	}
+
+
+
 }
 
 void AProtoOneGameMode::BeginPlay(){
 	Super::BeginPlay();
+
+	// create HUD
+	if (HUDWidgetClass) {
+		CurrentWidget = CreateWidget<UUserWidget>(GetWorld(), HUDWidgetClass);
+		if (CurrentWidget) {
+			CurrentWidget->AddToViewport();
+			UE_LOG(LogTemp, Warning, TEXT("HUD created successfully!"))
+		}
+		else {
+			UE_LOG(LogTemp, Warning, TEXT("CurrentWidget failed to be created.!"))
+		}
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("HUDWidgetClass failed to be created (is a nullptr?)!"))
+	}
 
 	/*WIP camera setup
 	MainCamera = CreateDefaultSubobject<AProtoOneCamera>(TEXT("MainCamera"));

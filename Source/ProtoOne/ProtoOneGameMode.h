@@ -15,6 +15,17 @@ public:
 		class AProtoOneCamera* MainCamera;
 
 	virtual void BeginPlay() override;
+
+protected:
+
+	/** HUD Attributes*/
+
+	//UE4 macro included for garbage collection only (need no other keywords)
+	UPROPERTY()
+	class UUserWidget* CurrentWidget;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, category = "HUD", meta = (BlueprintProtected = "true"))
+	TSubclassOf<class UUserWidget> HUDWidgetClass;
 };
 
 

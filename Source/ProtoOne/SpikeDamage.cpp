@@ -42,9 +42,8 @@ void USpikeDamage::TickComponent( float DeltaTime, ELevelTick TickType, FActorCo
 	Super::TickComponent( DeltaTime, TickType, ThisTickFunction );
 
 	// If comes in contact with Player Character, damage them
-	if (isActive && SpikeTrigger->IsOverlappingActor(ActorTrigger)) {
-		isActive = false;
-		UE_LOG(LogTemp, Warning, TEXT("Actor hit by spike!"));
+	if (SpikeTrigger->IsOverlappingActor(ActorTrigger)) {
+		//UE_LOG(LogTemp, Warning, TEXT("Actor hit by spike!"));
 		InflictDamage(ActorTrigger);
 	}
 

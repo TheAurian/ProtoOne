@@ -113,6 +113,10 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float AttackRecoveryDelay = 0.5f;
 
+	/** Duration after attacking and cannot move */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float HitRecoveryDelay = 0.5f;
+
 	/** Debug Attack/Spear Trace Length */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float DebugAttackLineLength = 80.f;
@@ -177,18 +181,39 @@ private:
 	const FHitResult GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd);
 
 	//////////////////////////////////////////////////////////////////
-	// DAMAGE CONTROL SECTIONS
+	// DAMAGE AND HEALTH CONTROL SECTIONS
 
 public:
 	void AddHealth(float HealthToAdd);
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	float GetPlayerHealth() { 
+		return HealthTotal; 
+	};
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+	float GetPlayerHealthPercentage() {
+		return HealthPercentage;
+	};
+
+	UFUNCTION(BlueprintCallable, Category = "Health")
+		void StartHitDelayTimer();
+
 	bool IsPlayerDead();
 	void KillPlayer();
 	void InflictDamage();
+	void PlayerHittable();
+
+	//not uproperty, because timerhandles cannot set as uproperties
+	/** Timer to set when player can be hit after taking damage */
+	FTimerHandle HittablePlayerTimer;
 
 private:
 	float HealthTotal;
 	float HealthPercentage = 100.f;
 	float HealthMultiplier = 1.f;
+	bool CanBeHit = false;
+
 
 
 
