@@ -14,11 +14,11 @@ AProtoOneGameMode::AProtoOneGameMode()
 	if (PlayerPawnBPClass.Class != NULL)
 	{
 		DefaultPawnClass = PlayerPawnBPClass.Class;
-
+		PrimaryActorTick.bCanEverTick = true;
 
 	}
 
-
+	SynergyDecayRate = 0.1f;
 
 }
 
@@ -56,4 +56,28 @@ void AProtoOneGameMode::BeginPlay(){
 	else {
 		UE_LOG(LogTemp, Warning, TEXT("Unable to create MainCamera. It's pointer is null."));
 	}*/
+
+	PlayerCharacter = Cast<AProtoOneCharacter>(UGameplayStatics::GetPlayerPawn(this, 0));
+	if (!PlayerCharacter) {
+		UE_LOG(LogTemp, Error, TEXT("Unable to find player in the game mode"));
+	}
+}
+
+void AProtoOneGameMode::Tick(float DeltaTime) {
+	Super::Tick(DeltaTime);
+
+	if (PlayerCharacter) {
+		if (PlayerCharacter->WasRecentlySynergized()) {
+			//do nothing
+		}
+		else {
+			PlayerCharacter->DeSynergize(DeltaTime*SynergyDecayRate*PlayerCharacter->GetMaxSynergy());
+		}
+	}
+	//UE_LOG(LogTemp, Error, TEXT("Unable to find player in the game mode"));
+
+		//is player synergized
+			//yes, do nothing
+			//no,
+				// decrease synergy
 }
