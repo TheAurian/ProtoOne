@@ -174,7 +174,6 @@ public:
 private:
 
 	FVector GetSweepRayTraceStart(EAttack SweepType);
-
 	FVector GetSweepRayTraceEnd(EAttack SweepType);
 
 	/** */
@@ -187,14 +186,10 @@ public:
 	void AddHealth(float HealthToAdd);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetPlayerHealth() { 
-		return HealthTotal; 
-	};
+	float GetPlayerHealth() { return HealthTotal; };
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetPlayerHealthPercentage() {
-		return HealthPercentage;
-	};
+	float GetPlayerHealthPercentage() { return HealthPercentage; };
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
 		void StartHitDelayTimer();
@@ -207,14 +202,50 @@ public:
 	//not uproperty, because timerhandles cannot set as uproperties
 	/** Timer to set when player can be hit after taking damage */
 	FTimerHandle HittablePlayerTimer;
+	FTimerHandle SynergySustainTimer;
+
+	UFUNCTION(BlueprintCallable, category = "Synergy")
+		void StartSynergySustainTimer();
+
+	/** Adds a set amount of synergy to the player */
+	UFUNCTION(BlueprintCallable, Category = "Synergy")
+		void Synergize();
+
+	/** Subtracts a set amount of synergy from the player */
+	UFUNCTION(BlueprintCallable, Category = "Synergy")
+		void DeSynergize(float Amount);
+	
+	/** Returns players current synergy level*/
+	UFUNCTION(BlueprintPure, Category = "Synergy")
+		float GetCurrentSynergy() { return CurrentSynergy; };
+
+	/** Returns max possible synergy player can sustain */
+	UFUNCTION(BlueprintPure, Category = "Synergy")
+		float GetMaxSynergy() { return MaxSynergy; };
+
+	/** Returns whether player recently gained synergy within the SynergizedPeriod*/
+	UFUNCTION(BlueprintCallable, Category = "Synergy")
+		bool WasRecentlySynergized() { return RecentlySynergized; };
+
+	// Will want a function that increases max synergization period, a function that increases max health, a function that synergizes player, and a function that gives player health
+
 
 private:
-	float HealthTotal;
+
+	// Health 
+	float HealthTotal = 100.f;
 	float HealthPercentage = 100.f;
 	float HealthMultiplier = 1.f;
 	bool CanBeHit = false;
 
+	//Synergy
+	
+	float MaxSynergy = 100.f;				///should be set in blueprints rather than hardcoded from here
+	float CurrentSynergy = MaxSynergy;
+	float SynergizedPeriod = 2.f;  ///should be set in blueprints rather than hardcoded from here
+	bool RecentlySynergized = false; //is player recently gained synergy
 
+	void StartSynergyDecay();
 
 
 

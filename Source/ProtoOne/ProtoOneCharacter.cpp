@@ -65,8 +65,8 @@ AProtoOneCharacter::AProtoOneCharacter()
 	PlayerCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	PlayerCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm */
 
-	//Set player stats
-	HealthTotal = 100.f;
+	///synergize player at spawn
+	Synergize();
 
 	/// wait after player spawns before they can take damage
 	StartHitDelayTimer();
@@ -76,6 +76,8 @@ AProtoOneCharacter::AProtoOneCharacter()
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////
 // Input
@@ -238,6 +240,9 @@ void AProtoOneCharacter::AttackStab() {
 
 		///call actors TakeDamage function
 	}
+
+	///FOR DEBUGGING, CAN BE REMOVED
+	Synergize();
 }
 
 void AProtoOneCharacter::Action() {
@@ -335,4 +340,27 @@ float AProtoOneCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 
 void AProtoOneCharacter::InflictDamage() {
 
+}
+
+/** SYNERGIZE FUNCTIONS */
+void AProtoOneCharacter::Synergize() {
+	StartSynergySustainTimer();
+	RecentlySynergized = true;
+}
+
+void AProtoOneCharacter::DeSynergize(float Amount) {
+	if (CurrentSynergy - Amount > 0) {
+		CurrentSynergy -= Amount;
+		//UE_LOG(LogTemp, Warning, TEXT("Current synergy has been decreased"));
+	}
+}
+
+void AProtoOneCharacter::StartSynergySustainTimer() {
+	if (GetWorld()) {
+		GetWorldTimerManager().SetTimer(SynergySustainTimer, this, &AProtoOneCharacter::StartSynergyDecay, SynergizedPeriod, false);
+	}
+}
+
+void AProtoOneCharacter::StartSynergyDecay() {
+	RecentlySynergized = false;
 }

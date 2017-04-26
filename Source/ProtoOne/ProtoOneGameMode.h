@@ -10,6 +10,7 @@ class AProtoOneGameMode : public AGameModeBase
 
 public:
 	AProtoOneGameMode();
+	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 		class AProtoOneCamera* MainCamera;
@@ -20,7 +21,7 @@ public:
 	UFUNCTION(BlueprintPure, category = "HUD")
 		FString GetHUDSynergy() { return HUD_Synergy; };
 
-
+	class AProtoOneCharacter* PlayerCharacter;
 
 	virtual void BeginPlay() override;
 
@@ -40,6 +41,13 @@ protected:
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, category = "HUD", meta = (BlueprintProtected = "true"))
 	TSubclassOf<class UUserWidget> HUDWidgetClass;
+
+	/** Game Mode determined Player valuyes*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, category = "Synergy", meta = (BlueprintProtected = "true"))
+		float SynergyDecayRate;
+
+
+
 };
 
 
