@@ -35,8 +35,22 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void MainAttack();
+
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+	void InflictDamage(AActor* ActorToDamage);
+
+	/** */
+	const FHitResult GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd);
 	
 	/** Enemy attributes */
+
+	/** Damage value for stab attaks */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float Damage_Amount = 30.f;
+
+	/** Debug Attack Trace Length */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
+		float DebugAttackLineLength = 100.f;
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
 		float GetHealth() { return CurrentHealth; };

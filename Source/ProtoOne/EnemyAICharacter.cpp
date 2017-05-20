@@ -2,6 +2,7 @@
 
 #include "ProtoOne.h"
 #include "EnemyAICharacter.h"
+#include "ProtoOneCharacter.h"
 
 
 // Sets default values
@@ -30,7 +31,57 @@ void AEnemyAICharacter::Tick( float DeltaTime )
 }
 
 void AEnemyAICharacter::MainAttack() {
+	UE_LOG(LogTemp, Warning, TEXT("%s is attacking!"), *this->GetName());
+	FVector LineTraceEnd = GetActorLocation() + this->GetActorRotation().Vector() * DebugAttackLineLength;
+
+	auto HitResult = GetSinglePhysicsBodyInRange(GetActorLocation(),  LineTraceEnd);
+	auto HitActor = HitResult.GetActor();
+
+	//if we hit an actor and that actor is the player (avoid hits on Tierra or other enemies)
+	AProtoOneCharacter* PlayerCharacter = Cast<AProtoOneCharacter>(HitActor);
+	if (PlayerCharacter) {
+		UE_LOG(LogTemp, Warning, TEXT("Stab Damaged Target: %s"), *HitActor->GetName());
+		InflictDamage(PlayerCharacter);
+	}
+	else {
+		if (HitActor) {
+			UE_LOG(LogTemp, Warning, TEXT("Error - Undetected Stab of Target: %s"), *HitActor->GetName());
+		}
+	}
+	// get actor that hit, if any and inflict damage
+
+
 	return;
+}
+
+const FHitResult AEnemyAICharacter::GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd) {
+
+	/// setup query parameters (always ignore yourself byt getting owner or the first hit we get will be ourself)
+	FCollisionQueryParams TraceParams(FName(TEXT("")), false, this);
+
+	///
+	FHitResult HitResult;
+	GetWorld()->LineTraceSingleByObjectType(
+		OUT HitResult,
+		LineTraceStart,
+		LineTraceEnd,
+		FCollisionObjectQueryParams(ECollisionChannel::ECC_Pawn),
+		TraceParams
+	);
+
+	for (int i = 0; i < 1; i++) {
+		DrawDebugLine(
+			GetWorld(),
+			LineTraceStart,
+			LineTraceEnd,
+			FColor(255, 0, 0),
+			true,
+			1.f,
+			0,
+			10.f
+		);
+	}
+	return HitResult;
 }
 
 float AEnemyAICharacter::TakeDamage(
@@ -58,6 +109,19 @@ float AEnemyAICharacter::TakeDamage(
 	}
 
 	return -1;
+}
+
+void AEnemyAICharacter::InflictDamage(AActor* ActorToDamage) {
+	//cast to a character and call take damage
+	ACharacter* DamagedActor = Cast<ACharacter>(ActorToDamage);
+	if (DamagedActor) {
+		TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
+		FDamageEvent DamageEvent(ValidDamageTypeClass);
+		DamagedActor->TakeDamage(Damage_Amount, DamageEvent, this->GetController(), this);
+	}
+
+	//include sound effect
+	//include visual effect
 }
 
 bool AEnemyAICharacter::IsDead() {
