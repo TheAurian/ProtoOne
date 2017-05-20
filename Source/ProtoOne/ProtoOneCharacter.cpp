@@ -71,7 +71,7 @@ AProtoOneCharacter::AProtoOneCharacter()
 	/// wait after player spawns before they can take damage
 	StartHitDelayTimer();
 
-	UE_LOG(LogTemp, Warning, TEXT("Player Character's current health is: %s"), *FString::SanitizeFloat(HealthTotal));
+	UE_LOG(LogTemp, Warning, TEXT("Player Character's current health is: %s"), *FString::SanitizeFloat(CurrentHealth));
 
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
@@ -105,29 +105,6 @@ void AProtoOneCharacter::SetupPlayerInputComponent(class UInputComponent* Player
 	PlayerInputComponent->BindAction("Sweep Left", IE_Pressed, this, &AProtoOneCharacter::AttackLeft);
 	PlayerInputComponent->BindAction("Sweep Right", IE_Pressed, this, &AProtoOneCharacter::AttackRight);
 	PlayerInputComponent->BindAction("Stab", IE_Pressed, this, &AProtoOneCharacter::AttackStab);
-
-	// handle touch devices
-	PlayerInputComponent->BindTouch(IE_Pressed, this, &AProtoOneCharacter::TouchStarted);
-	PlayerInputComponent->BindTouch(IE_Released, this, &AProtoOneCharacter::TouchStopped);
-
-	// VR headset functionality
-	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &AProtoOneCharacter::OnResetVR);
-}
-
-
-void AProtoOneCharacter::OnResetVR()
-{
-	UHeadMountedDisplayFunctionLibrary::ResetOrientationAndPosition();
-}
-
-void AProtoOneCharacter::TouchStarted(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		Jump();
-}
-
-void AProtoOneCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector Location)
-{
-		StopJumping();
 }
 
 void AProtoOneCharacter::TurnAtRate(float Rate)
@@ -174,6 +151,10 @@ void AProtoOneCharacter::MoveRight(float Value)
 ////////////////////////////////////////////////////////////////////////////////
 // ATTACKING 
 
+void AProtoOneCharacter::Action() {
+	UE_LOG(LogTemp, Warning, TEXT("ACTION BUTTON PRESSED"));
+}
+
 void AProtoOneCharacter::AttackRight() {
 	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP RIGHT BUTTON PRESSED"));
 
@@ -182,10 +163,55 @@ void AProtoOneCharacter::AttackRight() {
 	if (HitActor) {
 		UE_LOG(LogTemp, Warning, TEXT("Right Sweep Damaged  Target: %s"), *HitActor->GetName());
 
-		///call actors TakeDamage function, and apply damage based on attack damage
+		///call actors TakeDamage function
+		InflictDamage(HitActor);
+
+	}
+}
+
+void AProtoOneCharacter::AttackLeft() {
+	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP LEFT BUTTON PRESSED"));
+
+	auto HitResult = GetSinglePhysicsBodyInRange(GetSweepRayTraceStart(EAttack::AT_LEFT), GetSweepRayTraceEnd(EAttack::AT_LEFT));
+	auto HitActor = HitResult.GetActor();
+	if (HitActor) {
+		UE_LOG(LogTemp, Warning, TEXT("Left Sweep Damaged Target: %s"), *HitActor->GetName());
+
+		///call actors TakeDamage function
+		InflictDamage(HitActor);
 	}
 
+}
 
+
+void AProtoOneCharacter::AttackStab() {
+	UE_LOG(LogTemp, Warning, TEXT("ATTACK/STAB BUTTON PRESSED"));
+	
+	FVector LineTraceEnd = GetActorLocation() + GetActorRotation().Vector() * DebugAttackLineLength;
+
+	auto HitResult = GetSinglePhysicsBodyInRange(GetActorLocation(), LineTraceEnd);
+	auto HitActor = HitResult.GetActor();
+	if (HitActor) {
+		UE_LOG(LogTemp, Warning, TEXT("Stab Damaged Target: %s"), *HitActor->GetName());
+
+		InflictDamage(HitActor);
+	}
+
+	///FOR DEBUGGING, CAN BE REMOVED
+	Synergize();
+}
+
+void AProtoOneCharacter::InflictDamage(AActor* ActorToDamage) {
+	//cast to our player character and call take damage
+	ACharacter* DamagedActor = Cast<ACharacter>(ActorToDamage);
+	if (DamagedActor) {
+
+		TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>(UDamageType::StaticClass());
+		FDamageEvent DamageEvent(ValidDamageTypeClass);
+		DamagedActor->TakeDamage(Damage_StabAmount, DamageEvent, UGameplayStatics::GetPlayerController(this, 0), this);
+	}
+	//include sound effect
+	//include visual effect
 }
 
 FVector AProtoOneCharacter::GetSweepRayTraceStart(EAttack SweepType) {
@@ -214,41 +240,6 @@ FVector AProtoOneCharacter::GetSweepRayTraceEnd(EAttack SweepType) {
 	return GetSweepRayTraceStart(SweepType) + SweepEnd.Vector() * DebugAttackLineLength;
 }
 
-void AProtoOneCharacter::AttackLeft() {
-	UE_LOG(LogTemp, Warning, TEXT("ATTACK/SWEEP LEFT BUTTON PRESSED"));
-
-	auto HitResult = GetSinglePhysicsBodyInRange(GetSweepRayTraceStart(EAttack::AT_LEFT), GetSweepRayTraceEnd(EAttack::AT_LEFT));
-	auto HitActor = HitResult.GetActor();
-	if (HitActor) {
-		UE_LOG(LogTemp, Warning, TEXT("Left Sweep Damaged Target: %s"), *HitActor->GetName());
-
-		///call actors TakeDamage function
-	}
-
-
-}
-
-void AProtoOneCharacter::AttackStab() {
-	UE_LOG(LogTemp, Warning, TEXT("ATTACK/STAB BUTTON PRESSED"));
-	
-	FVector LineTraceEnd = GetActorLocation() + GetActorRotation().Vector() * DebugAttackLineLength;
-
-	auto HitResult = GetSinglePhysicsBodyInRange(GetActorLocation(), LineTraceEnd);
-	auto HitActor = HitResult.GetActor();
-	if (HitActor) {
-		UE_LOG(LogTemp, Warning, TEXT("Stab Damaged Target: %s"), *HitActor->GetName());
-
-		///call actors TakeDamage function
-	}
-
-	///FOR DEBUGGING, CAN BE REMOVED
-	Synergize();
-}
-
-void AProtoOneCharacter::Action() {
-	UE_LOG(LogTemp, Warning, TEXT("ACTION BUTTON PRESSED"));
-}
-
 const FHitResult AProtoOneCharacter::GetSinglePhysicsBodyInRange(FVector LineTraceStart, FVector LineTraceEnd) {
 
 	/// setup query parameters (always ignore yourself byt getting owner or the first hit we get will be ourself)
@@ -264,14 +255,14 @@ const FHitResult AProtoOneCharacter::GetSinglePhysicsBodyInRange(FVector LineTra
 		TraceParams
 	);
 
-	for (int i = 0; i < 60; i++) {
+	for (int i = 0; i < 1; i++) {
 		DrawDebugLine(
 			GetWorld(),
 			LineTraceStart,
 			LineTraceEnd,
 			FColor(255, 0, 0),
-			false,
-			0.f,
+			true,
+			1.f,
 			0,
 			10.f
 		);
@@ -286,14 +277,22 @@ void AProtoOneCharacter::AddHealth(float HealthToAdd) {
 
 }
 
-bool AProtoOneCharacter::IsPlayerDead() {
-	return HealthTotal <= 0;
+bool AProtoOneCharacter::IsDead() {
+	return CurrentHealth <= 0;
 }
 
 void AProtoOneCharacter::KillPlayer() {
-	UE_LOG(LogTemp, Warning, TEXT("Player has lost ALL health and is now dead!: %s HP"), *FString::SanitizeFloat(HealthTotal));
+	UE_LOG(LogTemp, Warning, TEXT("Player has lost ALL health and is now dead!: %s HP"), *FString::SanitizeFloat(CurrentHealth));
+
+	APlayerController* PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	if (PlayerController) {
+		PlayerController->SetCinematicMode(true, false, false, true, true);
+		GetMesh()->SetSimulatePhysics(true);
+	}
+	else {
+		UE_LOG(LogTemp, Error, TEXT("UNABLE to kill player. Could not retrieve player controller!"));
+	}
 	// sound/visual effect
-	//PlayerController->SetCinematicMode(); to disable input
 	// run game over UI
 	// initiate game restart
 	// may need to call Destroy() and GetWorld()->ForceGarbageCollection(true)
@@ -313,10 +312,9 @@ float AProtoOneCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 	const float ActualDamage = Super::TakeDamage(DamageAmount, DamageEvent, EventInstigator, DamageCauser);
 
 	// if player is not dead
-	if (!IsPlayerDead() & CanBeHit) {
+	if (!IsDead() & CanBeHit) {
 		// damage player
-		HealthTotal -= ActualDamage;
-		HealthPercentage = HealthTotal / 100.f;
+		CurrentHealth -= ActualDamage;
 		UE_LOG(LogTemp, Warning, TEXT("Player Took this much damage: %s HP"), *FString::SanitizeFloat(ActualDamage));
 		CanBeHit = false;
 		StartHitDelayTimer();
@@ -326,10 +324,10 @@ float AProtoOneCharacter::TakeDamage(float DamageAmount, struct FDamageEvent con
 		return 0.f;
 	}
 
-	UE_LOG(LogTemp, Warning, TEXT("Player's remaining health: %s HP"), *FString::SanitizeFloat(HealthTotal));
+	UE_LOG(LogTemp, Warning, TEXT("Player's remaining health: %s HP"), *FString::SanitizeFloat(CurrentHealth));
 
 	// if player is now dead
-	if (IsPlayerDead()) {
+	if (CurrentHealth <= 0) {
 		// kill player
 		KillPlayer();
 	}

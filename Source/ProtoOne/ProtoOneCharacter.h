@@ -54,8 +54,6 @@ public:
 
 protected:
 
-	/** Resets HMD orientation in VR. */
-	void OnResetVR();
 
 	/** Called for forwards/backward input */
 	void MoveForward(float Value);
@@ -74,12 +72,6 @@ protected:
 	 * @param Rate	This is a normalized rate, i.e. 1.0 means 100% of desired turn rate
 	 */
 	void LookUpAtRate(float Rate);
-
-	/** Handler for when a touch input begins. */
-	void TouchStarted(ETouchIndex::Type FingerIndex, FVector Location);
-
-	/** Handler for when a touch input stops. */
-	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
 protected:
 	// APawn interface
@@ -113,7 +105,7 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 	float AttackRecoveryDelay = 0.5f;
 
-	/** Duration after attacking and cannot move */
+	/** Duration after taking damage where the player cannot take damage again */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
 		float HitRecoveryDelay = 0.5f;
 
@@ -131,7 +123,7 @@ protected:
 
 	/** Damage value for stab attaks */ 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
-		float Damage_Stab = 30.f;
+		float Damage_StabAmount = 30.f;
 
 	/** Damage value for sweep attaks */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attack")
@@ -156,9 +148,14 @@ public:
 		- each attack function should include an audio que, an animation reference and a visual effect
 	*/
 
+	/** This function initiates action events or evades (context-sensitive)*/
+	UFUNCTION(BlueprintCallable, Category = "Attack")
+		void Action();
+
 	/** This function initiates action events or evades (depending on game context)*/
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void AttackLeft();
+
 	/** This function initiates action events or evades (depending on game context)*/
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void AttackRight();
@@ -167,9 +164,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Attack")
 		void AttackStab();
 
-	/** This function initiates action events or evades (depending on game context)*/
-	UFUNCTION(BlueprintCallable, Category = "Attack")
-		void Action();
+
+
+	void InflictDamage(AActor* ActorToDamage);
 
 private:
 
@@ -186,15 +183,17 @@ public:
 	void AddHealth(float HealthToAdd);
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetPlayerHealth() { return HealthTotal; };
+	float GetPlayerHealth() { return CurrentHealth; };
 
 	UFUNCTION(BlueprintCallable, Category = "Health")
-	float GetPlayerHealthPercentage() { return HealthPercentage; };
+	float GetPlayerHealthPercentage() { return CurrentHealth / BaseHealth; };
 
-	UFUNCTION(BlueprintCallable, Category = "Health")
-		void StartHitDelayTimer();
+	/** */
+	void StartHitDelayTimer();
 
-	bool IsPlayerDead();
+	UFUNCTION(Blueprintpure, Category = "Health")
+	bool IsDead();
+
 	void KillPlayer();
 	void InflictDamage();
 	void PlayerHittable();
@@ -221,34 +220,54 @@ public:
 
 	/** Returns max possible synergy player can sustain */
 	UFUNCTION(BlueprintPure, Category = "Synergy")
-		float GetMaxSynergy() { return MaxSynergy; };
+		float GetMaxSynergy() { return BaseSynergy; };
 
 	/** Returns whether player recently gained synergy within the SynergizedPeriod*/
 	UFUNCTION(BlueprintCallable, Category = "Synergy")
 		bool WasRecentlySynergized() { return RecentlySynergized; };
 
+	void StartSynergyDecay();
+
 	// Will want a function that increases max synergization period, a function that increases max health, a function that synergizes player, and a function that gives player health
 
 
-private:
+protected:
+	/** 
+	The base (or "FULL") health of the player. 
+	The base health can be modified to increase the overall HP of the player
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+	float BaseHealth = 200.f;
 
-	// Health 
-	float HealthTotal = 100.f;
-	float HealthPercentage = 100.f;
+	/** Current Health of the player */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Health")
+		float CurrentHealth = BaseHealth;
+
 	float HealthMultiplier = 1.f;
 	bool CanBeHit = false;
 
 	//Synergy
 	
-	float MaxSynergy = 100.f;				///should be set in blueprints rather than hardcoded from here
-	float CurrentSynergy = MaxSynergy;
-	float SynergizedPeriod = 2.f;  ///should be set in blueprints rather than hardcoded from here
-	bool RecentlySynergized = false; //is player recently gained synergy
-
-	void StartSynergyDecay();
-
-
-
+	///should be set in blueprints rather than hardcoded from here
+	/**
+	The base (or "FULL") synergy level of the player.
+	The base synergy level can be modified to increase the overall synergy level of the player
+	*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Synergy")
+	float BaseSynergy = 100.f;				
+	
+	/** Current Synergy Level of the player */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Synergy")
+	float CurrentSynergy = BaseSynergy;
+	
+	///should be set in blueprints rather than hardcoded from here
+	/** How long the player stays synergized without their synergy level decaying*/
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Synergy")
+	float SynergizedPeriod = 2.f;  
+	
+	/** Returns whether the player has recently gained synergy */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Synergy")
+	bool RecentlySynergized = false; 
 
 
 };
